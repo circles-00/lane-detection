@@ -18,24 +18,42 @@ def draw_lines(image, hough_lines):
 
     return image
 
+def gaussian_blur(gray_scaled_image):
+    blur = cv2.GaussianBlur(gray_scaled_image, (5, 5), 0)
+    return blur
+
+def canny_img(blured_image):
+    canny = cv2.Canny(blured_image, 130, 220)
+    return canny
+
+def grayscale(image):
+    gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    gray_img = cv2.dilate(gray_img, kernel=np.ones((3, 3), np.uint8))
+
+    return gray_img
+
+def hough_lines(image):
+    lines = cv2.HoughLinesP(image, 1, np.pi / 180, threshold=10, minLineLength=15, maxLineGap=2)
+
+    return lines
 
 def process(img):
     height = img.shape[0]
     width = img.shape[1]
     roi_vertices = [
         (0, 650),
-        (2*width/3, 2*height/3),
+        (2*width/4.2, 2*height/3),
         (width, 1000)
     ]
 
-    gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    gray_img = cv2.dilate(gray_img, kernel=np.ones((3, 3), np.uint8))
+    gray_img = grayscale(img)
 
-    canny = cv2.Canny(gray_img, 130, 220)
+    blur = gaussian_blur(gray_img)
+    canny = canny_img(blur)
 
     roi_img = roi(canny, np.array([roi_vertices], np.int32))
 
-    lines = cv2.HoughLinesP(roi_img, 1, np.pi / 180, threshold=10, minLineLength=15, maxLineGap=2)
+    lines = hough_lines(roi_img)
 
     final_img = draw_lines(img, lines)
 
